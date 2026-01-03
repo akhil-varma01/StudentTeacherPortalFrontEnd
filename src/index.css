@@ -1,0 +1,51 @@
+
+.dark-mode {
+  background-color: #121212 !important;
+  color: white !important;
+  transition: 0.3s;
+}
+
+.dark-mode input,
+.dark-mode textarea {
+  background-color: #1e1e1e;
+  color: white;
+  border-color: #444;
+}
+
+.dark-mode button {
+  background-color: #333 !important;
+  color: white !important;
+  border: 1px solid #555 !important;
+}
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+.dark-mode {
+  background-color: #121212 !important;
+  color: white !important;
+  transition: 0.3s;
+}
+
+.dark-mode input,
+.dark-mode textarea {
+  background-color: #1e1e1e;
+  color: white;
+  border-color: #444;
+}
+
+.dark-mode button {
+  background-color: #333 !important;
+  color: white !important;
+  border: 1px solid #555 !important;
+}
