@@ -1,6 +1,7 @@
 // AdminTaskCreate.jsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import api from "../api";
 
 function AdminTaskCreate() {
   const navigate = useNavigate();
@@ -8,15 +9,14 @@ function AdminTaskCreate() {
   const [form, setForm] = useState({
     title: "",
     description: "",
-    assigned_to: "" // "" means all users
+    assigned_to: "",
   });
   const [message, setMessage] = useState("");
 
+  // ✅ FETCH STUDENTS
   useEffect(() => {
-    // fetch all students to populate dropdown
-    fetch("http://127.0.0.1:8000/students/")
-      .then((res) => res.json())
-      .then((data) => setStudents(data))
+    api.get("/students/")
+      .then((res) => setStudents(res.data))
       .catch((err) => console.error("Error fetching students:", err));
   }, []);
 
@@ -24,34 +24,25 @@ function AdminTaskCreate() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  // ✅ CREATE TASK
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage("Creating...");
 
-    // prepare payload: assigned_to empty string or student id
     const payload = {
       title: form.title,
       description: form.description,
-      assigned_to: form.assigned_to === "" ? "" : Number(form.assigned_to)
+      assigned_to: form.assigned_to === "" ? "" : Number(form.assigned_to),
     };
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/admin/tasks/create/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (res.ok) {
-        setMessage("Task created successfully!");
-        // optionally navigate back to admin tasks list
-        setTimeout(() => navigate("/admin/tasks"), 800);
-      } else {
-        const data = await res.json();
-        setMessage(data.error || "Failed to create task");
-      }
+      await api.post("/api/admin/tasks/create/", payload);
+      setMessage("Task created successfully!");
+      setTimeout(() => navigate("/admin/tasks"), 800);
     } catch (err) {
-      setMessage("Error: " + err.message);
+      setMessage(
+        err.response?.data?.error || "Failed to create task"
+      );
     }
   };
 

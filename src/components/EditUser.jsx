@@ -1,7 +1,8 @@
-// EditUser.jsx
+// src/components/EditUser.jsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "../context/UserContext";
+import api from "../api";
 
 function EditUser() {
   const navigate = useNavigate();
@@ -20,25 +21,16 @@ function EditUser() {
     e.preventDefault();
 
     try {
-      const response = await fetch(
-        `http://127.0.0.1:8000/students/update/${user.id}/`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData),
-        }
-      );
+      const res = await api.put(`/students/update/${user.id}/`, formData);
 
-      if (response.ok) {
-        const updatedData = await response.json();
-        login(updatedData);
-        alert("Details updated successfully!");
-        navigate("/profile");
-      } else {
-        alert("Failed to update details.");
-      }
+      login(res.data); // update user in context
+      alert("Details updated successfully!");
+      navigate("/profile");
+
     } catch (error) {
-      alert("Error: " + error.message);
+      alert(
+        error.response?.data?.error || "Failed to update details."
+      );
     }
   };
 

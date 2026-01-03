@@ -1,40 +1,42 @@
-// TodoList.jsx
+// src/components/TodoList.jsx
 import React, { useEffect, useState } from "react";
 import { useUser } from "../context/UserContext";
-import { useNavigate } from "react-router-dom";
-import { useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+import api from "../api";
 
 function TodoList() {
   const { user } = useUser();
   const navigate = useNavigate();
+  const location = useLocation();
+
   const [todos, setTodos] = useState([]);
   const [refresh, setRefresh] = useState(false);
 
-
+  // ✅ LOAD TODOS
   useEffect(() => {
-    if (user) {
-      fetch(`http://127.0.0.1:8000/todos/${user.id}/`)
-        .then((res) => res.json())
-        .then((data) => setTodos(data))
-        .catch((err) => console.error(err));
-    }
+    if (!user) return;
+
+    api.get(`/todos/${user.id}/`)
+      .then((res) => setTodos(res.data))
+      .catch((err) => console.error("Error loading todos:", err));
   }, [user, refresh]);
 
+  // ✅ TOGGLE COMPLETE
   const toggleComplete = async (id) => {
-  await fetch(`http://127.0.0.1:8000/todos/toggle-complete/${id}/`, {
-    method: "PATCH",
-  });
-  setRefresh(prev => !prev); // reload updated list
-};
+    try {
+      await api.patch(`/todos/toggle-complete/${id}/`);
+      setRefresh((prev) => !prev);
+    } catch (err) {
+      console.error("Failed to toggle todo:", err);
+    }
+  };
 
-  const location = useLocation();
-
-useEffect(() => {
-  if (location.state?.refresh) {
-    setRefresh((prev) => !prev); // force reload
-  }
-}, [location.state]);
-
+  // ✅ REFRESH AFTER NAVIGATION
+  useEffect(() => {
+    if (location.state?.refresh) {
+      setRefresh((prev) => !prev);
+    }
+  }, [location.state]);
 
   if (!user) {
     return (
@@ -115,7 +117,6 @@ useEffect(() => {
           + Add New To-Do
         </button>
 
-        {/* If no todos */}
         {todos.length === 0 ? (
           <p
             style={{
@@ -127,82 +128,84 @@ useEffect(() => {
             No tasks yet. Create your first one!
           </p>
         ) : (
-          <div>
-            {todos.map((todo) => (
-              <div
-                key={todo.id}
+          todos.map((todo) => (
+            <div
+              key={todo.id}
+              style={{
+                padding: "15px",
+                borderRadius: "12px",
+                background: todo.completed ? "#d4edda" : "#ffffff",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                marginBottom: "15px",
+              }}
+            >
+              <h4
                 style={{
-                  padding: "15px",
-                  borderRadius: "12px",
-                  background: todo.completed ? "#d4edda" : "#ffffff",
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-                  marginBottom: "15px",
+                  marginBottom: "5px",
+                  fontWeight: "700",
+                  color: "#333",
                 }}
               >
-                <h4
+                {todo.title}
+              </h4>
+
+              <p style={{ marginBottom: "8px", color: "#4e0b0bff" }}>
+                {todo.description}
+              </p>
+
+              <label
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  margin: "10px 0",
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={todo.completed}
+                  onChange={() => toggleComplete(todo.id)}
+                />
+                Mark as Completed
+              </label>
+
+              <div style={{ display: "flex", gap: "10px" }}>
+                <button
+                  onClick={() => navigate(`/todo-update/${todo.id}`)}
                   style={{
-                    marginBottom: "5px",
-                    fontWeight: "700",
-                    color: "#333",
+                    flex: 1,
+                    padding: "10px",
+                    backgroundColor: "#ff9800",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "8px",
+                    cursor: "pointer",
+                    fontWeight: "600",
                   }}
                 >
-                  {todo.title}
-                </h4>
+                  Update
+                </button>
 
-                <p style={{ marginBottom: "8px", color: "#4e0b0bff" }}>
-                  {todo.description}
-                </p>
-
-                <label style={{ display: "flex", alignItems: "center", gap: "8px", margin: "10px 0" }}>
-                  <input
-                    type="checkbox"
-                    checked={todo.completed}
-                    onChange={() => toggleComplete(todo.id)}
-                  />
-                  Mark as Completed
-                </label>
-
-                <div style={{ display: "flex", gap: "10px" }}>
-                  {/* Update Button */}
-                  <button
-                    onClick={() => navigate(`/todo-update/${todo.id}`)}
-                    style={{
-                      flex: 1,
-                      padding: "10px",
-                      backgroundColor: "#ff9800",
-                      color: "white",
-                      border: "none",
-                      borderRadius: "8px",
-                      cursor: "pointer",
-                      fontWeight: "600",
-                    }}
-                  >
-                    Update
-                  </button>
-
-                  {/* Delete Button */}
-                  <button
-                    onClick={() => navigate(`/todo-delete/${todo.id}`)}
-                    style={{
-                      flex: 1,
-                      padding: "10px",
-                      backgroundColor: "#d32f2f",
-                      color: "white",
-                      border: "none",
-                      borderRadius: "8px",
-                      cursor: "pointer",
-                      fontWeight: "600",
-                    }}
-                  >
-                    Delete
-                  </button>
-                </div>
+                <button
+                  onClick={() => navigate(`/todo-delete/${todo.id}`)}
+                  style={{
+                    flex: 1,
+                    padding: "10px",
+                    backgroundColor: "#d32f2f",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "8px",
+                    cursor: "pointer",
+                    fontWeight: "600",
+                  }}
+                >
+                  Delete
+                </button>
               </div>
-            ))}
-          </div>
+            </div>
+          ))
         )}
 
-        {/* Bottom Navigation */}
         <div style={{ marginTop: "20px", display: "flex", gap: "30px" }}>
           <button
             onClick={() => navigate("/profile")}
@@ -218,7 +221,6 @@ useEffect(() => {
           >
             Back to Profile
           </button>
-
         </div>
       </div>
     </div>

@@ -1,6 +1,7 @@
-// Register.jsx
+// src/components/Register.jsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import api from "../api";
 
 function Register() {
   const navigate = useNavigate();
@@ -35,21 +36,15 @@ function Register() {
     setMessage("Registering...");
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/register/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
+      const res = await api.post("/register/", formData);
 
-      const data = await response.json();
-      if (response.ok) {
-        setMessage("Registration successful!");
-        navigate("/login");
-      } else {
-        setMessage(data.error || "Something went wrong");
-      }
+      setMessage("Registration successful!");
+      navigate("/login");
+
     } catch (error) {
-      setMessage("Error: " + error.message);
+      setMessage(
+        error.response?.data?.error || "Something went wrong"
+      );
     }
   };
 
@@ -66,7 +61,7 @@ function Register() {
         fontFamily: "Poppins, sans-serif",
       }}
     >
-      {/* ABSTRACT BLURRED SHAPES */}
+      {/* BLURRED SHAPES */}
       <div
         style={{
           position: "absolute",
@@ -92,7 +87,6 @@ function Register() {
         }}
       />
 
-      {/* GLASS CARD */}
       <div
         style={{
           width: "450px",
@@ -171,7 +165,9 @@ function Register() {
             style={{
               marginTop: "15px",
               textAlign: "center",
-              color: message.includes("success") ? "green" : "red",
+              color: message.includes("successful")
+                ? "green"
+                : "red",
               fontWeight: "600",
             }}
           >

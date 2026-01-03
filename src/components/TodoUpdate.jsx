@@ -1,22 +1,25 @@
-// TodoUpdate.jsx
+// src/components/TodoUpdate.jsx
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import api from "../api";
 
 function TodoUpdate() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const [formData, setFormData] = useState({ title: "", description: "" });
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+  });
   const [message, setMessage] = useState("");
 
-  // ✅ Fetch the existing todo data
+  // ✅ FETCH EXISTING TODO
   useEffect(() => {
-    fetch(`http://127.0.0.1:8000/todos/get/${id}/`)
-      .then((res) => res.json())
-      .then((data) => {
+    api.get(`/todos/get/${id}/`)
+      .then((res) => {
         setFormData({
-          title: data.title || "",
-          description: data.description || "",
+          title: res.data.title || "",
+          description: res.data.description || "",
         });
       })
       .catch((err) => console.error("Error fetching todo:", err));
@@ -29,23 +32,18 @@ function TodoUpdate() {
     });
   };
 
+  // ✅ UPDATE TODO
   const handleSave = async (e) => {
     e.preventDefault();
 
-    const response = await fetch(
-      `http://127.0.0.1:8000/todos/update/${id}/`,
-      {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      }
-    );
-
-    if (response.ok) {
+    try {
+      await api.put(`/todos/update/${id}/`, formData);
       setMessage("Todo updated successfully!");
       setTimeout(() => navigate("/todos"), 1000);
-    } else {
-      setMessage("Failed to update todo");
+    } catch (error) {
+      setMessage(
+        error.response?.data?.error || "Failed to update todo"
+      );
     }
   };
 
@@ -83,7 +81,11 @@ function TodoUpdate() {
 
         <form onSubmit={handleSave}>
           <label
-            style={{ fontWeight: "600", display: "block", marginBottom: "5px" }}
+            style={{
+              fontWeight: "600",
+              display: "block",
+              marginBottom: "5px",
+            }}
           >
             Title:
           </label>
@@ -105,7 +107,11 @@ function TodoUpdate() {
           />
 
           <label
-            style={{ fontWeight: "600", display: "block", marginBottom: "5px" }}
+            style={{
+              fontWeight: "600",
+              display: "block",
+              marginBottom: "5px",
+            }}
           >
             Description:
           </label>
@@ -125,9 +131,8 @@ function TodoUpdate() {
               resize: "none",
               fontSize: "14px",
             }}
-          ></textarea>
+          />
 
-          {/* Save Button */}
           <button
             type="submit"
             style={{
@@ -146,19 +151,19 @@ function TodoUpdate() {
           </button>
         </form>
 
-        {/* Message */}
-        <p
-          style={{
-            textAlign: "center",
-            marginTop: "10px",
-            color: "#777",
-            fontWeight: "500",
-          }}
-        >
-          {message}
-        </p>
+        {message && (
+          <p
+            style={{
+              textAlign: "center",
+              marginTop: "10px",
+              color: "#777",
+              fontWeight: "500",
+            }}
+          >
+            {message}
+          </p>
+        )}
 
-        {/* Back Button */}
         <button
           onClick={() => navigate("/todos")}
           style={{

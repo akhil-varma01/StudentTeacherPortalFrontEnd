@@ -1,21 +1,21 @@
-// TodoDelete.jsx
+// src/components/TodoDelete.jsx
 import React from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import api from "../api";
 
 function TodoDelete() {
   const { id } = useParams();
   const navigate = useNavigate();
 
   const handleDelete = async () => {
-    const response = await fetch(`http://127.0.0.1:8000/todos/delete/${id}/`, {
-      method: "DELETE",
-    });
-
-    if (response.ok) {
+    try {
+      await api.delete(`/todos/delete/${id}/`);
       alert("Todo deleted successfully!");
       navigate("/todos");
-    } else {
-      alert("Failed to delete todo");
+    } catch (error) {
+      alert(
+        error.response?.data?.error || "Failed to delete todo"
+      );
     }
   };
 
@@ -52,12 +52,20 @@ function TodoDelete() {
         </h2>
 
         <p style={{ color: "#555", marginBottom: "25px" }}>
-          Are you sure you want to permanently delete this task?<br />
-          <b style={{ color: "#d32f2f" }}>This action cannot be undone.</b>
+          Are you sure you want to permanently delete this task?
+          <br />
+          <b style={{ color: "#d32f2f" }}>
+            This action cannot be undone.
+          </b>
         </p>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-          {/* Delete Button */}
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "12px",
+          }}
+        >
           <button
             onClick={handleDelete}
             style={{
@@ -74,7 +82,6 @@ function TodoDelete() {
             Yes, Delete Task
           </button>
 
-          {/* Cancel Button */}
           <button
             onClick={() => navigate("/todos")}
             style={{

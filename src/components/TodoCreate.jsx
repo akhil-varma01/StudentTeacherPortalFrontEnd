@@ -1,13 +1,17 @@
-// TodoCreate.jsx
+// src/components/TodoCreate.jsx
 import React, { useState } from "react";
 import { useUser } from "../context/UserContext";
 import { useNavigate } from "react-router-dom";
+import api from "../api";
 
 function TodoCreate() {
   const { user } = useUser();
   const navigate = useNavigate();
 
-  const [formData, setFormData] = useState({ title: "", description: "" });
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+  });
   const [message, setMessage] = useState("");
 
   const handleChange = (e) => {
@@ -17,17 +21,14 @@ function TodoCreate() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const response = await fetch(`http://127.0.0.1:8000/todos/${user.id}/`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formData),
-    });
-
-    if (response.ok) {
+    try {
+      await api.post(`/todos/${user.id}/`, formData);
       setMessage("Todo added successfully!");
       navigate("/todos");
-    } else {
-      setMessage("Failed to add todo");
+    } catch (error) {
+      setMessage(
+        error.response?.data?.error || "Failed to add todo"
+      );
     }
   };
 
@@ -65,7 +66,11 @@ function TodoCreate() {
 
         <form onSubmit={handleSubmit}>
           <label
-            style={{ fontWeight: "600", display: "block", marginBottom: "5px" }}
+            style={{
+              fontWeight: "600",
+              display: "block",
+              marginBottom: "5px",
+            }}
           >
             Title:
           </label>
@@ -87,7 +92,11 @@ function TodoCreate() {
           />
 
           <label
-            style={{ fontWeight: "600", display: "block", marginBottom: "5px" }}
+            style={{
+              fontWeight: "600",
+              display: "block",
+              marginBottom: "5px",
+            }}
           >
             Description:
           </label>
@@ -107,9 +116,8 @@ function TodoCreate() {
               resize: "none",
               fontSize: "14px",
             }}
-          ></textarea>
+          />
 
-          {/* Submit button */}
           <button
             type="submit"
             style={{
@@ -128,12 +136,18 @@ function TodoCreate() {
           </button>
         </form>
 
-        {/* Message */}
-        <p style={{ textAlign: "center", marginTop: "10px", color: "#777" }}>
-          {message}
-        </p>
+        {message && (
+          <p
+            style={{
+              textAlign: "center",
+              marginTop: "10px",
+              color: "#777",
+            }}
+          >
+            {message}
+          </p>
+        )}
 
-        {/* Back button */}
         <button
           onClick={() => navigate("/todos")}
           style={{

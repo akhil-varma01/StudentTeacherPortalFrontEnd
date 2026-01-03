@@ -2,12 +2,13 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "../context/UserContext";
+import api from "../api";
 
 function Login() {
   const navigate = useNavigate();
   const { login } = useUser();
 
-  const [mode, setMode] = useState("student"); // "student" or "admin"
+  const [mode, setMode] = useState("student"); // student | admin
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
@@ -18,37 +19,30 @@ function Login() {
 
     try {
       if (mode === "student") {
-        const response = await fetch("http://127.0.0.1:8000/login/", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username, password }),
+        // ✅ STUDENT LOGIN
+        const res = await api.post("/login/", {
+          username,
+          password,
         });
-        const data = await response.json();
-        if (response.ok) {
-          login(data.student);           // save student in context
-          navigate("/profile");
-        } else {
-          setMessage(data.error || "Login failed");
-        }
+
+        login(res.data.student);
+        navigate("/profile");
+
       } else {
-        // Admin login
-        const response = await fetch("http://127.0.0.1:8000/api/admin/login/", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username, password }),
+        // ✅ ADMIN LOGIN
+        const res = await api.post("/api/admin/login/", {
+          username,
+          password,
         });
-        const data = await response.json();
-        if (response.ok) {
-          // store admin in localStorage (simple auth)
-          localStorage.setItem("admin", JSON.stringify(data.admin));
-          setMessage("Admin login successful");
-          navigate("/admin-dashboard");
-        } else {
-          setMessage(data.error || "Admin login failed");
-        }
+
+        localStorage.setItem("admin", JSON.stringify(res.data.admin));
+        setMessage("Admin login successful");
+        navigate("/admin-dashboard");
       }
     } catch (error) {
-      setMessage("Error: " + error.message);
+      setMessage(
+        error.response?.data?.error || "Login failed"
+      );
     }
   };
 
@@ -66,6 +60,7 @@ function Login() {
         fontFamily: "Poppins, sans-serif",
       }}
     >
+      {/* background effects */}
       <div
         style={{
           position: "absolute",
@@ -102,10 +97,19 @@ function Login() {
           border: "1px solid rgba(255,255,255,0.4)",
         }}
       >
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-          <h1 style={{ margin: 0, color: "#003d27" }}>Welcome Back</h1>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 14,
+          }}
+        >
+          <h1 style={{ margin: 0, color: "#003d27" }}>
+            Welcome Back
+          </h1>
 
-          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <div style={{ display: "flex", gap: 8 }}>
             <button
               onClick={() => setMode("student")}
               style={{
@@ -113,13 +117,17 @@ function Login() {
                 borderRadius: 8,
                 border: "none",
                 cursor: "pointer",
-                background: mode === "student" ? "#2e7d62" : "rgba(255,255,255,0.7)",
+                background:
+                  mode === "student"
+                    ? "#2e7d62"
+                    : "rgba(255,255,255,0.7)",
                 color: mode === "student" ? "white" : "#333",
                 fontWeight: 600,
               }}
             >
               Student
             </button>
+
             <button
               onClick={() => setMode("admin")}
               style={{
@@ -127,7 +135,10 @@ function Login() {
                 borderRadius: 8,
                 border: "none",
                 cursor: "pointer",
-                background: mode === "admin" ? "#2e7d62" : "rgba(255,255,255,0.7)",
+                background:
+                  mode === "admin"
+                    ? "#2e7d62"
+                    : "rgba(255,255,255,0.7)",
                 color: mode === "admin" ? "white" : "#333",
                 fontWeight: 600,
               }}
@@ -137,56 +148,38 @@ function Login() {
           </div>
         </div>
 
-        <p style={{ textAlign: "center", color: "#333", marginBottom: 20 }}>
-          {mode === "student" ? "Login to your student dashboard" : "Admin sign in"}
+        <p style={{ textAlign: "center", color: "#333" }}>
+          {mode === "student"
+            ? "Login to your student dashboard"
+            : "Admin sign in"}
         </p>
 
         <form onSubmit={handleSubmit}>
-          <label style={{ fontWeight: "600" }}>Username</label>
+          <label>Username</label>
           <input
-            type="text"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            style={{
-              width: "100%",
-              padding: "12px",
-              marginBottom: "12px",
-              borderRadius: "10px",
-              border: "1px solid #ccc",
-              outline: "none",
-              background: "rgba(255,255,255,0.85)",
-            }}
+            style={{ width: "100%", padding: 12, marginBottom: 12 }}
           />
 
-          <label style={{ fontWeight: "600" }}>Password</label>
+          <label>Password</label>
           <input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            style={{
-              width: "100%",
-              padding: "12px",
-              marginBottom: "18px",
-              borderRadius: "10px",
-              border: "1px solid #ccc",
-              outline: "none",
-              background: "rgba(255,255,255,0.85)",
-            }}
+            style={{ width: "100%", padding: 12, marginBottom: 18 }}
           />
 
           <button
             type="submit"
             style={{
               width: "100%",
-              padding: "12px",
+              padding: 12,
               background: "#2e7d62",
               color: "white",
               border: "none",
-              borderRadius: "10px",
-              fontWeight: "600",
-              cursor: "pointer",
-              fontSize: "16px",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.12)",
+              borderRadius: 10,
+              fontWeight: 600,
             }}
           >
             {mode === "student" ? "Login" : "Admin Login"}
@@ -194,33 +187,35 @@ function Login() {
         </form>
 
         {message && (
-          <p style={{ marginTop: "14px", textAlign: "center", color: message.includes("successful") ? "green" : "red" }}>
+          <p
+            style={{
+              marginTop: 14,
+              textAlign: "center",
+              color: message.includes("successful")
+                ? "green"
+                : "red",
+            }}
+          >
             {message}
           </p>
         )}
 
-        <div style={{ marginTop: 12, display: "flex", gap: 10 }}>
-          {mode === "student" ? (
-            <button
-              onClick={() => navigate("/register")}
-              style={{
-                width: "100%",
-                padding: "12px",
-                backgroundColor: "rgba(255,255,255,0.7)",
-                border: "1px solid #ccc",
-                borderRadius: "10px",
-                cursor: "pointer",
-                fontWeight: "600",
-              }}
-            >
-              Create New Account
-            </button>
-          ) : (
-            <div style={{ width: "100%", textAlign: "center", color: "#555", fontSize: 14 }}>
-              Use your admin credentials
-            </div>
-          )}
-        </div>
+        {mode === "student" && (
+          <button
+            onClick={() => navigate("/register")}
+            style={{
+              width: "100%",
+              padding: 12,
+              marginTop: 12,
+              background: "rgba(255,255,255,0.7)",
+              border: "1px solid #ccc",
+              borderRadius: 10,
+              fontWeight: 600,
+            }}
+          >
+            Create New Account
+          </button>
+        )}
       </div>
     </div>
   );
